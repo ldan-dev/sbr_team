@@ -1,10 +1,10 @@
 # sbr_team
 tareas y proyectos en equipo de sbr
-<!-- https://github.com/ldan-dev/repo -->
+<!-- https://github.com/ldan-dev/sbr_team -->
 
 <br />
 <div align="center">
-  <a href="https://github.com/ldan-dev/repo">
+  <a href="https://github.com/ldan-dev/sbr_team">
     <img src="https://github.com/ldan-dev/assets/blob/main/logo_ug.png?raw=true" alt="Logo UG" width="250" >
   </a>
 
@@ -48,7 +48,7 @@ tareas y proyectos en equipo de sbr
 # Clone the repository
 To clone this repository, use the following command:
 ```bash
-git clone https://github.com/ldan-dev/repo.git
+git clone https://github.com/ldan-dev/sbr_team.git
 ```
 
 # Environment Setup
@@ -152,7 +152,7 @@ If you want to contribute to this project, follow these steps:
 
 1. Clone the repository locally:
 ```bash
-git clone https://github.com/ldan-dev/repo.git
+git clone https://github.com/ldan-dev/sbr_team.git
 ```
 
 2. Create a new branch for your feature or bugfix:
