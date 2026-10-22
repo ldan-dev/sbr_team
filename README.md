@@ -106,6 +106,45 @@ sbr_team\Scripts\activate # Windows
 uv pip install -r requirements.txt
 ```
 
+## Organización de bibliotecas y tareas
+
+Las bibliotecas compartidas se guardan en `lib/` y cada tarea puede tener su
+propio directorio, por ejemplo:
+
+```text
+lib/
+  syLibFuzzy.py
+  syLibFuzzyPlot.py
+sbr1023/
+  code/
+    main.py
+```
+
+En `main.py`, agrega `lib/` al `sys.path` usando la ubicación del propio
+archivo, no el directorio desde el que se ejecuta Python:
+
+```python
+import sys
+from pathlib import Path
+
+TASK_DIR = Path(__file__).resolve().parents[1]
+LIB_DIR = TASK_DIR.parent / "lib"
+sys.path.insert(0, str(LIB_DIR))
+```
+
+Así puedes ejecutar una tarea desde cualquier directorio:
+
+```bash
+python sbr1023/code/main.py
+```
+
+Para que los resultados queden dentro de la tarea, usa `TASK_DIR` como
+directorio de salida:
+
+```python
+fig.savefig(TASK_DIR / "resultado.png")
+```
+
 # Contributing
 > **Note:** Never commit or push directly to the `main` branch. Always create a new branch for every new feature or bugfix.
 
