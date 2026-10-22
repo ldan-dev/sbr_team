@@ -1,21 +1,14 @@
-"""**************************************************************************
-      clasificador_clima_BIOFAM.py
+"""
+Clasificador difuso de riesgo climático usando una tabla BIOFAM.
+Modelo de 2 entradas difusas y 1 salida crisp (sin desdifusificación).
 
-      Clasificador difuso de riesgo climático usando una tabla BIOFAM.
-      Modelo de 2 entradas difusas y 1 salida crisp (sin desdifusificación).
+Entradas:
+- Temperatura (°C): FRIA, TEMPLADA, CALIENTE
+- Humedad   (%):    BAJA, MEDIA, ALTA
+Salida (etiqueta):
+- BAJO, MEDIO, ALTO
 
-      Entradas:
-        - Temperatura (°C): FRIA, TEMPLADA, CALIENTE
-        - Humedad   (%):    BAJA, MEDIA, ALTA
-      Salida (etiqueta):
-        - BAJO, MEDIO, ALTO
-
-      Requiere:
-        syLibFuzzy.py
-        syLibFuzzyPlot.py
-
-      Basado en la metodología vista en clase.
-***************************************************************************"""
+"""
 
 import sys
 from pathlib import Path
@@ -38,9 +31,7 @@ def main():
     print("\n\nCLASIFICADOR DIFUSO DE RIESGO CLIMATICO USANDO BIOFAM")
     print("=" * 65)
 
-    # -----------------------------------------------------
     # ENTRADA 1: TEMPERATURA (0 a 45 °C, 3 conjuntos)
-    # -----------------------------------------------------
     in1 = fuzzyVAR("Temperatura", 0, 45, 3, "C")
 
     # FRIA: trapezoidal [0, 0, 10, 18]
@@ -50,17 +41,13 @@ def main():
     # CALIENTE: trapezoidal [25, 35, 45, 45]
     in1.fuzSet[2].setValues("CALIENTE", TRAPEZOIDAL, 25, 35, 45, 45)
 
-    # -----------------------------------------------------
     # ENTRADA 2: HUMEDAD (0 a 100 %, 3 conjuntos)
-    # -----------------------------------------------------
     in2 = fuzzyVAR("Humedad", 0, 100, 3, "%")
     in2.fuzSet[0].setValues("BAJA",  TRAPEZOIDAL,  0,  0, 30, 50)
     in2.fuzSet[1].setValues("MEDIA", TRAPEZOIDAL, 40, 60, 60, 80)
     in2.fuzSet[2].setValues("ALTA",  TRAPEZOIDAL, 70, 85, 100, 100)
 
-    # -----------------------------------------------------
     # SALIDA: solo etiquetas (sin desdifusificación)
-    # -----------------------------------------------------
     Output_label = ["BAJO", "MEDIO", "ALTO"]
 
     # Mostrar variables
@@ -71,9 +58,7 @@ def main():
     print("\nETIQUETAS DE SALIDA:")
     print(Output_label)
 
-    # -----------------------------------------------------
     # TABLA BIOFAM
-    # -----------------------------------------------------
     # fam[r][c]:
     #   r = índice de Temperatura  (0=FRIA, 1=TEMPLADA, 2=CALIENTE)
     #   c = índice de Humedad       (0=BAJA, 1=MEDIA,   2=ALTA)
@@ -107,9 +92,7 @@ def main():
                   f"-> salida = {Output_label[fam[r][c]]}")
     print()
 
-    # -----------------------------------------------------
     # CASOS DE PRUEBA
-    # -----------------------------------------------------
     casos = [
         (5,  15, "extremo seguro"),
         (40, 90, "extremo riesgoso"),
@@ -164,9 +147,7 @@ def main():
               f"Y {in2.label} es {in2.fuzSet[cIdx].label}")
         print(f"  ENTONCES riesgo = {maxOutLabel}")
 
-    # -----------------------------------------------------
     # GRAFICAS (para incluir en el reporte)
-    # -----------------------------------------------------
     print("\n\nGenerando gráficas de las variables lingüísticas...")
 
     fig1, ax1 = plot_fuzzy_var(in1)
