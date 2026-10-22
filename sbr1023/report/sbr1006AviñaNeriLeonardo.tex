@@ -1,0 +1,209 @@
+\documentclass[conference]{IEEEtran}
+
+% Codificación y configuración general
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+
+% Paquetes habituales para artículos IEEE
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% TikZ se conserva para que pueda habilitarse cuando sea necesario.
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,positioning}
+
+\def\UrlBreaks{\do\/\do-\do\_}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    inputencoding=utf8,
+    extendedchars=true,
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1
+    {ú}{{\'u}}1 {ñ}{{\~n}}1 {ü}{{\"u}}1 {Á}{{\'A}}1 {É}{{\'E}}1
+    {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1 {Ñ}{{\~N}}1 {Ü}{{\"U}}1
+}
+
+% Descomenta y ajusta esta ruta si el documento utiliza imágenes.
+% \graphicspath{{../img/}}
+
+\title{Título del trabajo}
+
+\author{
+\IEEEauthorblockN{Leonardo Daniel Aviña Neri}
+\IEEEauthorblockA{
+Licenciatura en Ingeniería de Datos e Inteligencia Artificial\\
+Universidad de Guanajuato\\
+\texttt{ld.avinaneri@ugto.mx}
+}
+\and
+\IEEEauthorblockN{Nombre Apellido 2}
+\IEEEauthorblockA{
+Programa académico\\
+Universidad o institución\\
+\texttt{correo2@ejemplo.com}
+}
+\and
+\IEEEauthorblockN{Nombre Apellido 3}
+\IEEEauthorblockA{
+Programa académico\\
+Universidad o institución\\
+\texttt{correo3@ejemplo.com}
+}
+\and
+\IEEEauthorblockN{Nombre Apellido 4}
+\IEEEauthorblockA{
+Programa académico\\
+Universidad o institución\\
+\texttt{correo4@ejemplo.com}
+}
+\and
+\IEEEauthorblockN{Nombre Apellido 5}
+\IEEEauthorblockA{
+Programa académico\\
+Universidad o institución\\
+\texttt{correo5@ejemplo.com}
+}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer tincidunt,
+nisl at facilisis consequat, justo sem porta neque, vitae tincidunt massa
+libero non ipsum. Este resumen debe presentar brevemente el problema, la
+metodología, los resultados principales y la conclusión del trabajo.
+\end{abstract}
+
+\begin{IEEEkeywords}
+palabra clave 1, palabra clave 2, metodología, resultados, análisis
+\end{IEEEkeywords}
+
+\section{Introducción}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque consequat,
+urna sit amet fermentum ullamcorper, justo mauris posuere risus, vitae
+convallis lectus erat vel arcu. En esta sección se presenta el contexto del
+problema, su importancia y la motivación del trabajo.
+
+El objetivo general del estudio es describir una propuesta reproducible para
+analizar el problema seleccionado. Los objetivos específicos pueden incluir
+la identificación de variables, el diseño de una solución y la evaluación de
+los resultados obtenidos.
+
+\section{Marco teórico}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse potenti.
+Praesent eget lectus sed sem commodo consequat. Las definiciones, conceptos
+fundamentales y trabajos relacionados deben colocarse en esta sección.
+
+Una expresión matemática puede escribirse de la siguiente manera:
+\begin{equation}
+    f(x) = \sum_{i=1}^{n} w_i x_i,
+\end{equation}
+donde $w_i$ representa un peso y $x_i$ representa una variable de entrada.
+
+\section{Metodología}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae
+sollicitudin mauris. Nam euismod, massa quis consectetur tincidunt, sem
+libero tincidunt lectus, at commodo justo neque quis erat.
+
+\subsection{Materiales y herramientas}
+Indique aquí los datos, herramientas, lenguajes de programación, bibliotecas
+y recursos empleados en el desarrollo.
+
+\subsection{Procedimiento}
+Describa aquí las etapas necesarias para reproducir el trabajo. Puede
+organizar el procedimiento mediante una lista, un algoritmo o subsecciones.
+
+\begin{algorithm}[htbp]
+\caption{Procedimiento de ejemplo}
+\label{alg:procedimiento}
+\begin{algorithmic}[1]
+\STATE Recibir los datos de entrada.
+\STATE Procesar la información de acuerdo con el método propuesto.
+\STATE Evaluar y registrar los resultados.
+\RETURN Resultados del análisis.
+\end{algorithmic}
+\end{algorithm}
+
+\section{Resultados}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ac
+sollicitudin justo. Los resultados deben presentarse de forma clara,
+acompañados de tablas, figuras o métricas cuando sea necesario.
+
+\begin{table}[htbp]
+\centering
+\caption{Tabla de resultados de ejemplo.}
+\label{tab:resultados}
+\begin{tabular}{lcc}
+\toprule
+Categoría & Métrica 1 & Métrica 2 \\
+\midrule
+Caso A & 0.00 & 0.00 \\
+Caso B & 0.00 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Gráfico de ejemplo con TikZ. Descomenta este bloque cuando lo necesites.
+% \begin{figure}[htbp]
+% \centering
+% \begin{tikzpicture}[
+%     block/.style={
+%         rectangle,
+%         rounded corners=3pt,
+%         draw=black,
+%         align=center,
+%         minimum width=0.75\columnwidth,
+%         minimum height=0.7cm
+%     },
+%     arrow/.style={-stealth, draw=black},
+%     node distance=0.4cm
+% ]
+% \node[block] (entrada) {Datos de entrada};
+% \node[block, below=of entrada] (proceso) {Procesamiento};
+% \node[block, below=of proceso] (salida) {Resultados};
+% \draw[arrow] (entrada) -- (proceso);
+% \draw[arrow] (proceso) -- (salida);
+% \end{tikzpicture}
+% \caption{Diagrama de flujo de ejemplo.}
+% \label{fig:diagrama}
+% \end{figure}
+
+\section{Discusión}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean sed
+ullamcorper mi. Compare aquí los resultados con los objetivos planteados,
+explique sus implicaciones y señale las limitaciones del estudio.
+
+\section{Conclusiones}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. A partir del
+análisis realizado, redacte las conclusiones principales, las aportaciones
+del trabajo y las posibles líneas de investigación futura.
+
+\section*{Agradecimientos}
+Opcionalmente, incluya aquí agradecimientos a personas, instituciones o
+proyectos que hayan contribuido al desarrollo del trabajo.
+
+\begin{thebibliography}{00}
+\bibitem{referencia1}
+Autor, ``Título de la referencia,'' \textit{Nombre de la revista o
+conferencia}, vol. 1, no. 1, pp. 1--10, 2026.
+
+\bibitem{referencia2}
+Autor, \textit{Título del libro}, Editorial, 2026.
+\end{thebibliography}
+
+\end{document}
