@@ -17,19 +17,34 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 
-% TikZ se conserva para que pueda habilitarse cuando sea necesario.
+% TikZ para el diagrama a bloques
 \usepackage{tikz}
-\usetikzlibrary{shapes.geometric,positioning}
+\usetikzlibrary{shapes.geometric,positioning,arrows.meta}
 
 \def\UrlBreaks{\do\/\do-\do\_}
 
+% ==========================================
+% CONFIGURACIÓN DE COLORES PARA EL CÓDIGO
+% ==========================================
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.96}
+\definecolor{keywordcolor}{rgb}{0.0,0.0,0.8}
+
 \lstset{
-    basicstyle=\ttfamily\small,
+    language=Python,
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\footnotesize,
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{keywordcolor}\bfseries,
+    stringstyle=\color{codepurple},
+    numberstyle=\tiny\color{codegray},
+    numbers=left,
     showstringspaces=false,
     breaklines=true,
     frame=single,
-    numbers=left,
-    numberstyle=\tiny\color{gray},
+    rulecolor=\color{codegray},
     inputencoding=utf8,
     extendedchars=true,
     literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1
@@ -37,10 +52,7 @@
     {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1 {Ñ}{{\~N}}1 {Ü}{{\"U}}1
 }
 
-% Descomenta y ajusta esta ruta si el documento utiliza imágenes.
-% \graphicspath{{../img/}}
-
-\title{Título del trabajo}
+\title{Clasificador Difuso de Riesgo Climático usando una Tabla BIOFAM}
 
 \author{
     \IEEEauthorblockN{Melchor Alexander Araiza Zavala}
@@ -50,8 +62,6 @@
 \and
 \IEEEauthorblockN{Leonardo Daniel Aviña Neri}
 \IEEEauthorblockA{
-% Licenciatura en Ingeniería de Datos e Inteligencia Artificial\\
-% Universidad de Guanajuato\\
 \texttt{ld.avinaneri@ugto.mx}
 }
 \and
@@ -75,127 +85,444 @@
 \maketitle
 
 \begin{abstract}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer tincidunt,
-nisl at facilisis consequat, justo sem porta neque, vitae tincidunt massa
-libero non ipsum. Este resumen debe presentar brevemente el problema, la
-metodología, los resultados principales y la conclusión del trabajo.
+Este trabajo presenta un clasificador difuso de riesgo climático de dos entradas y una salida fija, construido con una tabla BIOFAM. Las entradas son la temperatura y la humedad relativa, y la salida es una etiqueta de riesgo que no requiere desdifusificación. Cada entrada se difusifica en tres conjuntos con funciones de membresía trapezoidales: FRÍA, TEMPLADA y CALIENTE para la temperatura, y BAJA, MEDIA y ALTA para la humedad. Una matriz BIOFAM de \(3\times3\) define las nueve reglas SI--ENTONCES. El nivel de activación de cada regla se calcula como el mínimo de las dos membresías, y la etiqueta de salida es la de la regla con mayor activación. El sistema se implementó en Python y se evaluó con cinco casos de prueba: dos condiciones extremas, una intermedia, una ambigua en la que compiten varias reglas y una de extremos opuestos. En los casos claros la regla ganadora coincidió con la intuición. En el caso ambiguo (\(27\,^\circ\)C, \(72\%\)) la activación quedó repartida entre cuatro reglas, con un ganador de baja activación (\(0.200\) frente a \(0.167\) de la segunda regla). Se concluye que un modelo difuso pequeño es interpretable y reproducible para clasificar niveles de riesgo a partir de variables imprecisas.
 \end{abstract}
 
 \begin{IEEEkeywords}
-palabra clave 1, palabra clave 2, metodología, resultados, análisis
+sistema difuso, BIOFAM, inferencia difusa, variables lingüísticas
 \end{IEEEkeywords}
 
 \section{Introducción}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque consequat,
-urna sit amet fermentum ullamcorper, justo mauris posuere risus, vitae
-convallis lectus erat vel arcu. En esta sección se presenta el contexto del
-problema, su importancia y la motivación del trabajo.
+La lógica difusa ofrece una metodología para representar y analizar dependencias que son aproximadas en lugar de exactas \cite{ross2010}. Su concepto central es la variable lingüística, cuyos valores son palabras y no números. Cada palabra se asocia con un conjunto difuso mediante una función de membresía, de modo que un valor real puede pertenecer en distinto grado a varios conjuntos a la vez. Esto permite describir sistemas con información imprecisa mediante reglas SI--ENTONCES cercanas al razonamiento humano, y explica su éxito en problemas de control, clasificación y toma de decisiones.
 
-El objetivo general del estudio es describir una propuesta reproducible para
-analizar el problema seleccionado. Los objetivos específicos pueden incluir
-la identificación de variables, el diseño de una solución y la evaluación de
-los resultados obtenidos.
+Un sistema basado en reglas difusas consta de una interfaz de difusificación, una base de conocimiento compuesta por conjuntos difusos y reglas, una máquina de inferencia y, en general, una interfaz de desdifusificación. En el caso de dos entradas y una salida, la base de conocimiento puede organizarse como una matriz BIOFAM (\textit{Bi-Input, One-Output Fuzzy Associative Memory}), donde cada celda corresponde a una regla. Cuando la salida es un dato fijo, como el índice de una etiqueta, basta con elegir la etiqueta de la regla más activada y no se requiere desdifusificación.
 
-\section{Marco teórico}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse potenti.
-Praesent eget lectus sed sem commodo consequat. Las definiciones, conceptos
-fundamentales y trabajos relacionados deben colocarse en esta sección.
+El ejercicio de este trabajo es un clasificador difuso de riesgo climático. Dadas una temperatura y una humedad relativa, el sistema debe asignar una etiqueta de riesgo: BAJO, MEDIO o ALTO. El problema es adecuado para un enfoque difuso porque las categorías climáticas no tienen fronteras exactas. Una temperatura de \(27\,^\circ\)C, por ejemplo, es parcialmente templada y parcialmente caliente, y una humedad de \(72\%\) es, de igual manera, parcialmente media y parcialmente alta. Un clasificador con umbrales rígidos trataría de forma abrupta valores que difieren muy poco, mientras que el modelo difuso permite una transición gradual entre categorías.
 
-Una expresión matemática puede escribirse de la siguiente manera:
-\begin{equation}
-    f(x) = \sum_{i=1}^{n} w_i x_i,
-\end{equation}
-donde $w_i$ representa un peso y $x_i$ representa una variable de entrada.
+El modelo se implementó en Python con la biblioteca de conjuntos y variables difusas proporcionada en el curso \cite{sanchez2026}, y con \texttt{matplotlib} para las gráficas. La temperatura se difusifica en tres conjuntos y la humedad también, lo que da una tabla BIOFAM de \(3\times3\) con nueve reglas. La activación de cada regla se calcula con el mínimo de las membresías de los antecedentes.
+
+El objetivo general es describir una propuesta reproducible para clasificar el riesgo climático con un sistema difuso de dos entradas y una salida fija \cite{guia}. Los objetivos específicos son: (i) definir las variables de entrada con sus conjuntos y funciones de membresía; (ii) diseñar la tabla BIOFAM de nueve reglas; (iii) implementar la inferencia basada en el mínimo y la selección de la regla ganadora; y (iv) evaluar el sistema con casos de prueba que incluyan condiciones extremas, intermedias y ambiguas.
 
 \section{Metodología}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae
-sollicitudin mauris. Nam euismod, massa quis consectetur tincidunt, sem
-libero tincidunt lectus, at commodo justo neque quis erat.
+Para resolver el problema planteado se diseñó un clasificador difuso de dos entradas y una salida fija (etiqueta \textit{crisp}), basado en una tabla de memoria asociativa difusa (BIOFAM). A diferencia de los sistemas de control continuo, este modelo no requiere una etapa de desdifusificación numérica, ya que la salida consiste únicamente en seleccionar el índice de la categoría con mayor activación.
 
 \subsection{Materiales y herramientas}
-Indique aquí los datos, herramientas, lenguajes de programación, bibliotecas
-y recursos empleados en el desarrollo.
+La implementación y las pruebas se realizaron en Python 3 utilizando los módulos proporcionados en la asignatura \cite{sanchez2026}:
+\begin{itemize}
+    \item \textbf{\texttt{syLibFuzzy}:} biblioteca base utilizada para crear las variables lingüísticas (\texttt{fuzzyVAR}) y definir sus conjuntos difusos (\texttt{fuzzySET}). Permite configurar formas trapezoidales mediante cuatro puntos \([p_0, p_1, p_2, p_3]\) y calcular directamente el grado de membresía \(\mu(x)\) de cualquier valor de entrada.
+    \item \textbf{\texttt{syLibFuzzyPlot}:} módulo empleado junto con \texttt{matplotlib.pyplot} para generar las gráficas de las particiones difusas y visualizar la ubicación de los valores de prueba sobre cada conjunto.
+\end{itemize}
 
-\subsection{Procedimiento}
-Describa aquí las etapas necesarias para reproducir el trabajo. Puede
-organizar el procedimiento mediante una lista, un algoritmo o subsecciones.
+\subsection{Definición de las variables y difusificación}
+El sistema evalúa el riesgo climático a partir de dos variables de entrada numéricas y entrega una etiqueta de salida:
+\begin{enumerate}
+    \item \textbf{Temperatura (\(T\)):} definida en el rango \([0, 45]\,^\circ\)C y dividida en tres conjuntos difusos: \texttt{FRIA}, \texttt{TEMPLADA} y \texttt{CALIENTE}.
+    \item \textbf{Humedad (\(H\)):} definida en el rango \([0, 100]\%\) y dividida igualmente en tres conjuntos: \texttt{BAJA}, \texttt{MEDIA} y \texttt{ALTA}.
+    \item \textbf{Salida (Riesgo):} representada mediante una lista de tres etiquetas fijas: \texttt{BAJO} (índice 0), \texttt{MEDIO} (índice 1) y \texttt{ALTO} (índice 2).
+\end{enumerate}
 
-\begin{algorithm}[htbp]
-\caption{Procedimiento de ejemplo}
-\label{alg:procedimiento}
-\begin{algorithmic}[1]
-\STATE Recibir los datos de entrada.
-\STATE Procesar la información de acuerdo con el método propuesto.
-\STATE Evaluar y registrar los resultados.
-\RETURN Resultados del análisis.
-\end{algorithmic}
-\end{algorithm}
-
-\section{Resultados}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ac
-sollicitudin justo. Los resultados deben presentarse de forma clara,
-acompañados de tablas, figuras o métricas cuando sea necesario.
+La Tabla~\ref{tab:variables} resume las variables del sistema. Es importante notar que la salida es de tipo \textit{crisp}, por lo que no se define una función de membresía para ella.
 
 \begin{table}[htbp]
 \centering
-\caption{Tabla de resultados de ejemplo.}
-\label{tab:resultados}
-\begin{tabular}{lcc}
+\caption{Variables del sistema difuso.}
+\label{tab:variables}
+\begin{tabular}{llll}
 \toprule
-Categoría & Métrica 1 & Métrica 2 \\
+Variable & Tipo & Rango & Conjuntos \\
 \midrule
-Caso A & 0.00 & 0.00 \\
-Caso B & 0.00 & 0.00 \\
+Temperatura & Entrada difusa & \([0, 45]\) & 3 etiquetas \\
+Humedad & Entrada difusa & \([0, 100]\) & 3 etiquetas \\
+Etiqueta \(L\) & Salida crisp & \(\{0,1,2\}\) & 3 etiquetas \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-% Gráfico de ejemplo con TikZ. Descomenta este bloque cuando lo necesites.
-% \begin{figure}[htbp]
-% \centering
-% \begin{tikzpicture}[
-%     block/.style={
-%         rectangle,
-%         rounded corners=3pt,
-%         draw=black,
-%         align=center,
-%         minimum width=0.75\columnwidth,
-%         minimum height=0.7cm
-%     },
-%     arrow/.style={-stealth, draw=black},
-%     node distance=0.4cm
-% ]
-% \node[block] (entrada) {Datos de entrada};
-% \node[block, below=of entrada] (proceso) {Procesamiento};
-% \node[block, below=of proceso] (salida) {Resultados};
-% \draw[arrow] (entrada) -- (proceso);
-% \draw[arrow] (proceso) -- (salida);
-% \end{tikzpicture}
-% \caption{Diagrama de flujo de ejemplo.}
-% \label{fig:diagrama}
-% \end{figure}
+Todos los conjuntos se declararon en el código usando el tipo \texttt{TRAPEZOIDAL} con cuatro puntos \([p_0, p_1, p_2, p_3]\). Para los conjuntos intermedios (\texttt{TEMPLADA} y \texttt{MEDIA}), se igualaron los dos parámetros centrales (\(p_1 = p_2\)), lo que en la práctica forma una función triangular con pico máximo en ese punto. Los valores utilizados se muestran en la Tabla~\ref{tab:conjuntos_difusos}.
+
+\begin{table}[htbp]
+\centering
+\caption{Parámetros de los conjuntos difusos de entrada.}
+\label{tab:conjuntos_difusos}
+\begin{tabular}{llcccc}
+\toprule
+Variable & Conjunto & \(p_0\) & \(p_1\) & \(p_2\) & \(p_3\) \\
+\midrule
+Temperatura (\(^\circ\)C) & \texttt{FRIA}     & 0  & 0  & 10 & 18 \\
+                          & \texttt{TEMPLADA} & 15 & 22 & 22 & 28 \\
+                          & \texttt{CALIENTE} & 25 & 35 & 45 & 45 \\
+\midrule
+Humedad (\%)              & \texttt{BAJA}     & 0  & 0  & 30 & 50 \\
+                          & \texttt{MEDIA}    & 40 & 60 & 60 & 80 \\
+                          & \texttt{ALTA}     & 70 & 85 & 100 & 100 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Reglas difusas y tabla BIOFAM}
+Al tener tres conjuntos por cada entrada, se forman \(3 \times 3 = 9\) reglas posibles del tipo:
+\begin{quote}
+\textit{SI Temperatura es \(A_r\) Y Humedad es \(B_c\) ENTONCES el riesgo es \(C_{r,c}\)}
+\end{quote}
+donde \(r \in \{0, 1, 2\}\) recorre los conjuntos de temperatura y \(c \in \{0, 1, 2\}\) recorre los de humedad. Estas reglas se organizaron en la tabla BIOFAM mostrada en la Tabla~\ref{tab:biofam_matriz}. La lógica propuesta considera que a mayor temperatura y humedad el riesgo sube a \texttt{ALTO}, mientras que con valores bajos o moderados el riesgo se mantiene en \texttt{BAJO} o \texttt{MEDIO}.
+
+\begin{table}[htbp]
+\centering
+\caption{Tabla BIOFAM propuesta (Temperatura vs.\ Humedad).}
+\label{tab:biofam_matriz}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Temp \(\backslash\) Hum} & \textbf{BAJA (0)} & \textbf{MEDIA (1)} & \textbf{ALTA (2)} \\
+\midrule
+\textbf{FRIA (0)}     & \texttt{BAJO}  & \texttt{BAJO}  & \texttt{MEDIO} \\
+\textbf{TEMPLADA (1)} & \texttt{BAJO}  & \texttt{MEDIO} & \texttt{ALTO}  \\
+\textbf{CALIENTE (2)} & \texttt{MEDIO} & \texttt{ALTO}  & \texttt{ALTO}  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Inferencia y obtención de la salida}
+El procedimiento completo del sistema se ilustra en el diagrama a bloques de la Fig.~\ref{fig:diagrama_bloques}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=0.35cm,
+    block/.style={
+        rectangle,
+        rounded corners=2pt,
+        draw=black,
+        fill=gray!10,
+        align=center,
+        font=\scriptsize,
+        text width=0.78\columnwidth,
+        inner sep=3pt
+    },
+    arrow/.style={-{Stealth[scale=0.8]}, draw=black, thick}
+]
+\node[block] (in) {\textbf{1. Lectura de entradas}\\Valores numéricos de \(T\) y \(H\)};
+\node[block, below=of in] (fuzz) {\textbf{2. Difusificación}\\Cálculo de membresías \(\mu_T[r]\) y \(\mu_H[c]\)};
+\node[block, below=of fuzz] (inf) {\textbf{3. Evaluación de reglas}\\\(\text{act}[r][c] = \min(\mu_T[r],\, \mu_H[c])\)};
+\node[block, below=of inf] (win) {\textbf{4. Regla ganadora}\\\((r^*, c^*) = \arg\max \text{act}[r][c]\)};
+\node[block, below=of win] (out) {\textbf{5. Etiqueta de salida}\\\(\texttt{fam}[r^*][c^*] \rightarrow\) \texttt{BAJO}/\texttt{MEDIO}/\texttt{ALTO}\\ (sin desdifusificación)};
+
+\draw[arrow] (in) -- (fuzz);
+\draw[arrow] (fuzz) -- (inf);
+\draw[arrow] (inf) -- (win);
+\draw[arrow] (win) -- (out);
+\end{tikzpicture}
+\caption{Diagrama a bloques del procedimiento de clasificación.}
+\label{fig:diagrama_bloques}
+\end{figure}
+
+Para un par de valores de entrada \((T, H)\), primero se obtienen los grados de membresía en los tres conjuntos de cada variable. Posteriormente, el nivel de activación de cada regla se calcula como el mínimo entre la membresía de la temperatura y la membresía de la humedad:
+\begin{equation}
+    \text{act}[r][c] = \min\big(\mu_{T,r}(T),\, \mu_{H,c}(H)\big)
+\end{equation}
+
+Una vez calculada la matriz de activación de \(3 \times 3\), se recorren sus elementos para encontrar la regla con el valor más alto (\texttt{maxAct}), guardando su fila \(r^*\) y columna \(c^*\). Con estos índices se consulta directamente la matriz \texttt{fam} para obtener el índice de la etiqueta ganadora. Como el resultado requerido es únicamente clasificar el estado en una categoría fija, no hace falta realizar un cálculo de centroide ni otro método de desdifusificación.
+
+\subsection{Casos de prueba propuestos}
+Para comprobar el funcionamiento del clasificador, se definieron en el código cinco casos de prueba que cubren distintas zonas de las variables de entrada:
+\begin{enumerate}
+    \item \textbf{Extremo seguro (\(5\,^\circ\)C, \(15\%\)):} valores ubicados completamente dentro de los conjuntos \texttt{FRIA} y \texttt{BAJA}, donde se espera una activación máxima de \(1.0\) para el riesgo \texttt{BAJO}.
+    \item \textbf{Extremo riesgoso (\(40\,^\circ\)C, \(90\%\)):} valores altos tanto en temperatura como en humedad para verificar que se active directamente la etiqueta \texttt{ALTO}.
+    \item \textbf{Condición intermedia (\(22\,^\circ\)C, \(60\%\)):} valores que coinciden exactamente con las puntas de los triángulos centrales (\texttt{TEMPLADA} y \texttt{MEDIA}).
+    \item \textbf{Caso ambiguo (\(27\,^\circ\)C, \(72\%\)):} punto ubicado en las regiones donde se traslapan los conjuntos (\texttt{TEMPLADA} con \texttt{CALIENTE} y \texttt{MEDIA} con \texttt{ALTA}). Sirve para observar cómo compiten varias reglas al mismo tiempo con membresías menores a 1 y cuál resulta ganadora.
+    \item \textbf{Extremos opuestos (\(0\,^\circ\)C, \(100\%\)):} combinación de la temperatura mínima con la humedad máxima para probar las esquinas contrarias de la tabla BIOFAM.
+\end{enumerate}
+
+\section{Resultados}
+
+\subsection{Resultados de los casos de prueba}
+La Tabla~\ref{tab:casos} muestra los resultados obtenidos al ejecutar \texttt{main.py} con los cinco casos de prueba. En los casos claros (1, 2, 3 y 5), la regla ganadora se activa con un valor alto (típicamente \(1.0\) o cercano), lo cual era lo esperado. En el caso ambiguo (4), la activación se reparte entre varias reglas, como se analiza en la siguiente subsección.
+
+\begin{table}[htbp]
+\centering
+\caption{Casos de prueba y resultados.}
+\label{tab:casos}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{cccccc}
+\toprule
+No. & \(T\) (\(^\circ\)C) & \(H\) (\%) & Descripción & Regla Ganadora & Etiqueta \\
+\midrule
+1 & 5 & 15 & Extremo seguro & FRIA--BAJA & BAJO \\
+2 & 40 & 90 & Extremo riesgoso & CALIENTE--ALTA & ALTO \\
+3 & 22 & 60 & Condición intermedia & TEMPLADA--MEDIA & MEDIO \\
+4 & 27 & 72 & Caso ambiguo & CALIENTE--MEDIA & ALTO \\
+5 & 0 & 100 & Extremos opuestos & FRIA--ALTA & MEDIO \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Difusificación de las variables de entrada}
+Las Figuras~\ref{fig:temp_var} y~\ref{fig:hum_var} muestran las funciones de membresía generadas por \texttt{syLibFuzzyPlot} para la temperatura y la humedad respectivamente. Los traslapes entre conjuntos vecinos son evidentes: por ejemplo, \texttt{TEMPLADA} y \texttt{CALIENTE} se cruzan en el intervalo aproximado de \(25\) a \(28\,^\circ\)C, mientras que \texttt{MEDIA} y \texttt{ALTA} lo hacen entre \(70\%\) y \(80\%\). Estos traslapes son los que producen la transición gradual entre etiquetas.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{../temp_var.png}
+\caption{Función de membresía para la variable Temperatura.}
+\label{fig:temp_var}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{../hum_var.png}
+\caption{Función de membresía para la variable Humedad.}
+\label{fig:hum_var}
+\end{figure}
+
+\subsection{Análisis del caso ambiguo}
+El caso de prueba 4 (\(T=27\,^\circ\)C, \(H=72\%\)) es el más informativo del ejercicio. Las membresías calculadas son:
+\begin{itemize}
+    \item \(\mu_{\text{TEMPLADA}}(27) = 0.167\)
+    \item \(\mu_{\text{CALIENTE}}(27) = 0.200\)
+    \item \(\mu_{\text{MEDIA}}(72) = 0.400\)
+    \item \(\mu_{\text{ALTA}}(72) = 0.133\)
+\end{itemize}
+
+Al aplicar la implicación por mínimo, cuatro reglas obtienen activación distinta de cero. La Tabla~\ref{tab:ambiguo} muestra las cuatro activaciones y la etiqueta asociada a cada una.
+
+\begin{table}[htbp]
+\centering
+\caption{Activaciones no nulas para el caso ambiguo (\(T=27\,^\circ\)C, \(H=72\%\)).}
+\label{tab:ambiguo}
+\begin{tabular}{lccc}
+\toprule
+Regla & Activación & Etiqueta & ¿Ganadora? \\
+\midrule
+TEMPLADA--MEDIA & 0.167 & MEDIO & No \\
+TEMPLADA--ALTA  & 0.133 & ALTO  & No \\
+CALIENTE--MEDIA & \textbf{0.200} & \textbf{ALTO} & \textbf{Sí} \\
+CALIENTE--ALTA  & 0.133 & ALTO  & No \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La regla ganadora es CALIENTE--MEDIA, con una activación de \(0.200\) frente a \(0.167\) de la segunda regla, un margen estrecho de apenas \(0.033\). La Figura~\ref{fig:valor_prueba} muestra visualmente cómo el valor \(T=27\,^\circ\)C tiene mayor pertenencia al conjunto CALIENTE que al conjunto TEMPLADA, lo cual explica que la regla ganadora sea de la fila CALIENTE. La Figura~\ref{fig:valor_prueba_hum} hace lo análogo para \(H=72\%\), que pertenece con mayor grado a MEDIA que a ALTA.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{../temp_var_value.png}
+\caption{Difusificación del valor \(T=27\,^\circ\)C del caso ambiguo.}
+\label{fig:valor_prueba}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{../hum_var_value.png}
+\caption{Difusificación del valor \(H=72\%\) del caso ambiguo.}
+\label{fig:valor_prueba_hum}
+\end{figure}
 
 \section{Discusión}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean sed
-ullamcorper mi. Compare aquí los resultados con los objetivos planteados,
-explique sus implicaciones y señale las limitaciones del estudio.
+Los resultados de la Tabla~\ref{tab:casos} confirman que el modelo reproduce cualitativamente el comportamiento esperado de un índice de riesgo térmico. En los extremos, la etiqueta asignada coincide con la intuición física: con \(T=5\,^\circ\)C y \(H=15\%\) el sistema devuelve BAJO, mientras que con \(T=40\,^\circ\)C y \(H=90\%\) devuelve ALTO. Este último caso es particularmente relevante porque combina las dos condiciones que elevan la sensación térmica real: alta temperatura y alta humedad relativa, que impiden la evaporación del sudor y agravan la carga fisiológica. La tabla BIOFAM codifica correctamente esa sinergia en la celda (CALIENTE, ALTA).
+
+El caso ambiguo (\(T=27\,^\circ\)C, \(H=72\%\)) es el más informativo del ejercicio. Las membresías obtenidas fueron \(\mu_{\text{TEMPLADA}}(27)=0.167\) y \(\mu_{\text{CALIENTE}}(27)=0.200\), mientras que en la humedad se tuvo \(\mu_{\text{MEDIA}}(72)=0.400\) y \(\mu_{\text{ALTA}}(72)=0.133\). Al aplicar la implicación por mínimo, las dos reglas con mayor activación fueron R(TEMPLADA, MEDIA) con \(0.167\) y R(CALIENTE, MEDIA) con \(0.200\). Ambas apuntan a etiquetas distintas (MEDIO y ALTO respectivamente), pero el mecanismo \textit{winner-takes-all} resolvió la ambigüedad a favor de ALTO, con un margen estrecho de apenas \(0.033\). Este resultado es doblemente ilustrativo: por un lado, muestra que el modelo no se bloquea ante entradas fronterizas; por otro, evidencia que la frontera entre MEDIO y ALTO es sensible a la forma exacta de las funciones de membresía. Un corrimiento de tan solo un par de grados en los puntos de soporte de TEMPLADA o CALIENTE podría invertir la decisión, lo cual sugiere que el ajuste de estas funciones no es trivial y debería validarse con datos reales si el modelo se llevara a producción.
+
+La transición continua entre etiquetas también se refleja en las gráficas de difusificación (Figuras~\ref{fig:temp_var} y~\ref{fig:hum_var}). Los traslapes entre conjuntos vecinos evitan que el sistema asigne etiquetas mediante saltos abruptos: al desplazar \(T\) desde valores fríos hacia calientes, la pertenencia a FRIA decae de forma gradual mientras la pertenencia a TEMPLADA y luego a CALIENTE crece, replicando el comportamiento continuo de las condiciones atmosféricas reales. Este comportamiento es precisamente la motivación de usar lógica difusa en lugar de umbrales duros \textit{if-else}, que producirían una frontera artificial y discontinua entre etiquetas.
+
+Es importante señalar las limitaciones del modelo. Primero, la sinergia entre temperatura y humedad está codificada en la tabla BIOFAM de forma cualitativa, pero no se deriva de un modelo termodinámico explícito como el índice de calor; la tabla representa conocimiento experto, no una ecuación física. Segundo, el modelo ignora variables como la velocidad del viento, la radiación solar directa o la duración de la exposición, todas las cuales modifican la sensación térmica real. Tercero, los puntos de soporte de las funciones de membresía se eligieron por criterio, sin calibrarse con datos históricos. Estas limitaciones son, sin embargo, consistentes con el objetivo del ejercicio: demostrar que un sistema difuso de dos entradas y una salida fija puede capturar relaciones cualitativas útiles sin recurrir a desdifusificación ni a un modelo físico completo.
+
+Finalmente, el ejercicio confirma una ventaja práctica de las tablas BIOFAM sobre las reglas enumeradas explícitamente: las nueve celdas de la Tabla~\ref{tab:biofam_matriz} resumen el conocimiento del dominio en una estructura compacta, legible y directamente auditable. Cualquier ajuste a la política de riesgo (por ejemplo, endurecer el criterio en la zona TEMPLADA) se traduce en modificar una sola celda, sin necesidad de reescribir el motor de inferencia.
 
 \section{Conclusiones}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. A partir del
-análisis realizado, redacte las conclusiones principales, las aportaciones
-del trabajo y las posibles líneas de investigación futura.
+En este trabajo se implementó un sistema difuso basado en una matriz BIOFAM y en la regla de selección por máxima activación. Los resultados obtenidos se aproximan a las condiciones térmicas esperadas del problema, resolviendo la problemática inicial dentro del tiempo planteado. La experiencia de desarrollo permitió comprender de forma práctica la transición entre la modelación matemática de las funciones de membresía y la toma de decisiones lógica ante variables con incertidumbre.
+
+El proceso evidenció la importancia de un diseño cuidadoso de las etiquetas lingüísticas. Se optó por mantener únicamente tres conjuntos por variable para ofrecer una representación simple pero clara, evitando la ambigüedad que surge de la percepción térmica individual y de los procesos de aclimatación del cuerpo humano según la región geográfica.
+
+La principal limitante del sistema es su dependencia de una correcta introducción de datos: los valores deben estar dentro de la escala planteada. No obstante, este factor es habitual en aplicaciones de ingeniería, lo que reafirma que este tipo de sistemas debe ser operado por personal capacitado y que todo modelo generalizado requiere una etapa continua de pruebas experimentales para validar y refinar sus resultados.
 
 \section*{Agradecimientos}
-Opcionalmente, incluya aquí agradecimientos a personas, instituciones o
-proyectos que hayan contribuido al desarrollo del trabajo.
+Se agradece al docente de la materia, el Dr.\ Sánchez Yáñez, por su valiosa orientación y por facilitar el código de ejemplo que sirvió como punto de partida para el desarrollo de esta práctica. Su aportación inicial no solo sentó los cimientos técnicos necesarios para plantear formalmente el problema, sino que también proporcionó la claridad metodológica indispensable para abordarlo. En particular, la guía brindada para la formulación e interpretación de la matriz BIOFAM, así como la pauta para la estructuración del sistema de reglas, fueron elementos fundamentales para comprender con precisión el problema que se buscaba resolver.
+
+De igual manera, se extiende un reconocimiento a cada uno de los integrantes del equipo. El logro de este trabajo es reflejo del compromiso, la dedicación y el esfuerzo colaborativo mantenido a lo largo de todas las etapas del desarrollo. Cada aportación individual representó una contribución sustancial al objetivo final: desde las labores iniciales de análisis, abstracción y delimitación del problema, hasta el proceso de definición, ajuste y validación de cada una de las reglas. Todos y cada uno de estos pasos resultaron indispensables para consolidar la solución presentada.
 
 \begin{thebibliography}{00}
-\bibitem{referencia1}
-Autor, ``Título de la referencia,'' \textit{Nombre de la revista o
-conferencia}, vol. 1, no. 1, pp. 1--10, 2026.
+\bibitem{ross2010}
+T. J. Ross, \textit{Fuzzy Logic with Engineering Applications}, 3rd ed. Wiley, 2010.
 
-\bibitem{referencia2}
-Autor, \textit{Título del libro}, Editorial, 2026.
+\bibitem{sanchez2026}
+R. E. Sánchez Yáñez, \textit{Sistemas basados en reglas: Notas de clase}, Universidad de Guanajuato, 2026.
+
+\bibitem{guia}
+R. E. Sánchez Yáñez, \textit{Guía Docente: Sistemas Basados en Reglas}, Universidad de Guanajuato, 2026.
 \end{thebibliography}
+
+\clearpage
+\onecolumn
+\appendices
+\section{Código Fuente: \texttt{main.py}}
+\label{app:codigo}
+
+A continuación se presenta el código implementado en Python para el clasificador difuso, haciendo uso de la biblioteca \texttt{syLibFuzzy} proporcionada en clase.
+
+\begin{lstlisting}[language=Python, caption={Implementación del clasificador difuso climático.}]
+"""
+Clasificador difuso de riesgo climatico usando una tabla BIOFAM.
+Modelo de 2 entradas difusas y 1 salida crisp (sin desdifusificacion).
+
+Entradas:
+- Temperatura (C): FRIA, TEMPLADA, CALIENTE
+- Humedad   (%):    BAJA, MEDIA, ALTA
+Salida (etiqueta):
+- BAJO, MEDIO, ALTO
+"""
+
+import sys
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+
+
+TASK_DIR = Path(__file__).resolve().parents[1]
+REPOSITORY_DIR = TASK_DIR.parent
+LIB_DIR = REPOSITORY_DIR / "lib"
+sys.path.insert(0, str(LIB_DIR))
+
+from syLibFuzzy import fuzzySET, fuzzyVAR, TRAPEZOIDAL
+from syLibFuzzyPlot import plot_fuzzy_var, plot_fuzzy_var_value
+
+
+def main():
+    output_dir = TASK_DIR
+
+    print("\n\nCLASIFICADOR DIFUSO DE RIESGO CLIMATICO USANDO BIOFAM")
+    print("=" * 65)
+
+    # ENTRADA 1: TEMPERATURA (0 a 45 C, 3 conjuntos)
+    in1 = fuzzyVAR("Temperatura", 0, 45, 3, "C")
+
+    # FRIA: trapezoidal [0, 0, 10, 18]
+    in1.fuzSet[0].setValues("FRIA",     TRAPEZOIDAL,  0,  0, 10, 18)
+    # TEMPLADA: triangular (p1=p2=22), [15, 22, 22, 28]
+    in1.fuzSet[1].setValues("TEMPLADA", TRAPEZOIDAL, 15, 22, 22, 28)
+    # CALIENTE: trapezoidal [25, 35, 45, 45]
+    in1.fuzSet[2].setValues("CALIENTE", TRAPEZOIDAL, 25, 35, 45, 45)
+
+    # ENTRADA 2: HUMEDAD (0 a 100 %, 3 conjuntos)
+    in2 = fuzzyVAR("Humedad", 0, 100, 3, "%")
+    in2.fuzSet[0].setValues("BAJA",  TRAPEZOIDAL,  0,  0, 30, 50)
+    in2.fuzSet[1].setValues("MEDIA", TRAPEZOIDAL, 40, 60, 60, 80)
+    in2.fuzSet[2].setValues("ALTA",  TRAPEZOIDAL, 70, 85, 100, 100)
+
+    # SALIDA: solo etiquetas (sin desdifusificacion)
+    Output_label = ["BAJO", "MEDIO", "ALTO"]
+
+    # Mostrar variables
+    print("\nENTRADA 1:")
+    in1.showValues()
+    print("\nENTRADA 2:")
+    in2.showValues()
+    print("\nETIQUETAS DE SALIDA:")
+    print(Output_label)
+
+    # TABLA BIOFAM
+    fam = [
+        [0, 0, 1],   # FRIA
+        [0, 1, 2],   # TEMPLADA
+        [1, 2, 2],   # CALIENTE
+    ]
+
+    # Visualizar la tabla
+    print("\n\nTABLA BIOFAM (Temp renglones vs Humedad columnas):\n")
+    header = "Temp\\Hum".ljust(12)
+    for fs in in2.fuzSet:
+        header += fs.label.center(10)
+    print(header)
+    print("-" * 45)
+    for r in range(in1.numSets):
+        row = in1.fuzSet[r].label.ljust(12)
+        for c in range(in2.numSets):
+            row += Output_label[fam[r][c]].center(10)
+        print(row)
+    print()
+
+    # Mostrar las 9 reglas
+    print("Las", in1.numSets * in2.numSets, "reglas son:\n")
+    for r in range(in1.numSets):
+        for c in range(in2.numSets):
+            print(f"  R({r},{c}): SI {in1.label} es {in1.fuzSet[r].label} "
+                  f"Y {in2.label} es {in2.fuzSet[c].label} "
+                  f"-> salida = {Output_label[fam[r][c]]}")
+    print()
+
+    # CASOS DE PRUEBA
+    casos = [
+        (5,  15, "extremo seguro"),
+        (40, 90, "extremo riesgoso"),
+        (22, 60, "condicion intermedia"),
+        (27, 72, "caso ambiguo (compiten reglas)"),
+        (0, 100, "extremos opuestos"),
+    ]
+
+    for (Vin1, Vin2, desc) in casos:
+        print("\n" + "=" * 65)
+        print(f"CASO: {desc}")
+        print(f"Entradas: {in1.label} = {Vin1} {in1.units}, "
+              f"{in2.label} = {Vin2} {in2.units}")
+        print("=" * 65)
+
+        # Membresias
+        memIn1 = [s.membership(Vin1) for s in in1.fuzSet]
+        memIn2 = [s.membership(Vin2) for s in in2.fuzSet]
+
+        print("\nMembresias:")
+        for i, mu in enumerate(memIn1):
+            print(f"  u_{in1.fuzSet[i].label:<10}({Vin1:6.2f}) = {mu:.3f}")
+        for i, mu in enumerate(memIn2):
+            print(f"  u_{in2.fuzSet[i].label:<10}({Vin2:6.2f}) = {mu:.3f}")
+
+        # Activacion de reglas (min de membresias)
+        act = [[0.0] * in2.numSets for _ in range(in1.numSets)]
+        maxAct = -1.0
+        rIdx = cIdx = -1
+        for r in range(in1.numSets):
+            for c in range(in2.numSets):
+                act[r][c] = min(memIn1[r], memIn2[c])
+                if act[r][c] > maxAct:
+                    maxAct = act[r][c]
+                    rIdx, cIdx = r, c
+
+        # Matriz de activacion
+        print("\nMatriz de activacion (min de membresias):")
+        header2 = "         " + "".join(f"{fs.label:>10}" for fs in in2.fuzSet)
+        print(header2)
+        for r in range(in1.numSets):
+            row = f"{in1.fuzSet[r].label:<9}"
+            for c in range(in2.numSets):
+                row += f"{act[r][c]:>10.3f}"
+            print(row)
+
+        # Resultado
+        maxIdOut = fam[rIdx][cIdx]
+        maxOutLabel = Output_label[maxIdOut]
+        print(f"\nRegla ganadora: [{rIdx},{cIdx}] con activacion = {maxAct:.3f}")
+        print(f"  SI {in1.label} es {in1.fuzSet[rIdx].label} "
+              f"Y {in2.label} es {in2.fuzSet[cIdx].label}")
+        print(f"  ENTONCES riesgo = {maxOutLabel}")
+
+    print("\n\nGenerando graficas de las variables linguisticas...")
+
+    fig1, ax1 = plot_fuzzy_var(in1)
+    fig1.savefig(output_dir / "temp_var.png", dpi=150, bbox_inches="tight")
+
+    fig2, ax2 = plot_fuzzy_var(in2)
+    fig2.savefig(output_dir / "hum_var.png", dpi=150, bbox_inches="tight")
+
+    # Con valor de prueba del caso ambiguo
+    fig3, ax3 = plot_fuzzy_var_value(in1, 27)
+    fig3.savefig(output_dir / "temp_var_value.png", dpi=150, bbox_inches="tight")
+
+    fig4, ax4 = plot_fuzzy_var_value(in2, 72)
+    fig4.savefig(output_dir / "hum_var_value.png", dpi=150, bbox_inches="tight")
+
+    plt.show()
+
+
+if __name__ == "__main__":
+    main()
+\end{lstlisting}
 
 \end{document}
